@@ -1,0 +1,205 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String         @id @default(auto()) @map("_id") @db.ObjectId
+  email         String         @unique
+  password      String
+  name          String
+  phone         String?
+  role          UserRole       @default(CLIENT)
+  image         String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  appointments  Appointment[]
+  notifications Notification[]
+}
+
+model Admin {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  email     String   @unique
+  password  String
+  name      String
+  role      String   @default("ADMIN")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum UserRole {
+  CLIENT
+  ADMIN
+  SUPER_ADMIN
+}
+
+model Treatment {
+  id           String            @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  slug         String            @unique
+  category     TreatmentCategory
+  description  String
+  overview     String?
+  benefits     String[]
+  procedure    String?
+  duration     String?
+  recovery     String?
+  faqs         String?
+  price        Float?
+  image        String?
+  images       String[]
+  active       Boolean           @default(true)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  appointments Appointment[]
+}
+
+enum TreatmentCategory {
+  MEDICAL_DERMATOLOGY
+  COSMETIC_DERMATOLOGY
+  LASER_TREATMENTS
+  HAIR_TREATMENTS
+  BRIDAL_GROOM
+  AESTHETIC_TREATMENTS
+}
+
+model Doctor {
+  id          String        @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  slug        String        @unique
+  specialty   String
+  bio         String?
+  image       String?
+  experience  Int?
+  education   String?
+  active      Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  appointments Appointment[]
+}
+
+model Appointment {
+  id          String            @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String?           @db.ObjectId
+  user        User?             @relation(fields: [userId], references: [id])
+  treatmentId String?           @db.ObjectId
+  treatment   Treatment?        @relation(fields: [treatmentId], references: [id])
+  doctorId    String?           @db.ObjectId
+  doctor      Doctor?           @relation(fields: [doctorId], references: [id])
+  name        String
+  email       String?
+  phone       String
+  date        DateTime
+  time        String
+  status      AppointmentStatus @default(PENDING)
+  notes       String?
+  source      String            @default("WEBSITE")
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+}
+
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+  RESCHEDULED
+}
+
+model Testimonial {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  treatment String?
+  content   String
+  rating    Int      @default(5)
+  image     String?
+  videoUrl  String?
+  beforeImg String?
+  afterImg  String?
+  featured  Boolean  @default(false)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Lead {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  phone       String
+  email       String?
+  treatment   String?
+  message     String?
+  source      String   @default("WEBSITE")
+  status      String   @default("NEW")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Blog {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  slug        String   @unique
+  excerpt     String?
+  content     String
+  category    String?
+  tags        String[]
+  image       String?
+  author      String?
+  published   Boolean  @default(false)
+  featured    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model GalleryImage {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  title       String?
+  description String?
+  imageUrl    String
+  category    String?
+  beforeImg   String?
+  afterImg    String?
+  type        String   @default("IMAGE")
+  featured    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model WhatsAppLog {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  phone       String
+  message     String
+  treatment   String?
+  status      String   @default("SENT")
+  leadId      String?  @db.ObjectId
+  createdAt   DateTime @default(now())
+}
+
+model Package {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  slug        String   @unique
+  description String?
+  treatments  String[]
+  price       Float?
+  duration    String?
+  category    String?
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Notification {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
+  title     String
+  message   String
+  type      String   @default("INFO")
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
